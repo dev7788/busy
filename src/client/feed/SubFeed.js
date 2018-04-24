@@ -23,6 +23,8 @@ import LetsGetStarted from './LetsGetStarted';
 import ScrollToTop from '../components/Utils/ScrollToTop';
 import PostModal from '../post/PostModalContainer';
 
+import { getParleyCategory } from '../helpers/parleyHelper';
+
 @withRouter
 @connect(
   state => ({
@@ -57,7 +59,7 @@ class SubFeed extends React.Component {
 
   componentDidMount() {
     const { authenticated, loaded, user, match, feed } = this.props;
-    const category = match.params.category;
+    const category = getParleyCategory(match.params.category);
     let content = [];
 
     if (!loaded && Cookie.get('access_token')) return;
@@ -69,7 +71,7 @@ class SubFeed extends React.Component {
       }
     } else {
       const sortBy = match.params.sortBy || 'trending';
-      content = getFeedFromState(sortBy, match.params.category, feed);
+      content = getFeedFromState(sortBy, getParleyCategory(match.params.category), feed);
       if (_.isEmpty(content)) {
         this.props.getFeedContent(sortBy, category);
       }
@@ -80,8 +82,8 @@ class SubFeed extends React.Component {
     const { authenticated, loaded, user, match, feed } = nextProps;
     const oldSortBy = this.props.match.params.sortBy;
     const newSortBy = match.params.sortBy || 'trending';
-    const oldCategory = this.props.match.params.category;
-    const newCategory = match.params.category;
+    const oldCategory = getParleyCategory(this.props.match.params.category);
+    const newCategory = getParleyCategory(match.params.category);
     const wasAuthenticated = this.props.authenticated;
     const isAuthenticated = authenticated;
     const wasLoaded = this.props.loaded;
@@ -125,11 +127,12 @@ class SubFeed extends React.Component {
       loadMoreContent = () => this.props.getMoreFeedContent('feed', user.name);
     } else {
       const sortBy = match.params.sortBy || 'trending';
-      content = getFeedFromState(sortBy, match.params.category, feed);
-      isFetching = getFeedLoadingFromState(sortBy, match.params.category, feed);
-      fetched = getFeedFetchedFromState(sortBy, match.params.category, feed);
-      hasMore = getFeedHasMoreFromState(sortBy, match.params.category, feed);
-      loadMoreContent = () => this.props.getMoreFeedContent(sortBy, match.params.category);
+      content = getFeedFromState(sortBy, getParleyCategory(match.params.category), feed);
+      isFetching = getFeedLoadingFromState(sortBy, getParleyCategory(match.params.category), feed);
+      fetched = getFeedFetchedFromState(sortBy, getParleyCategory(match.params.category), feed);
+      hasMore = getFeedHasMoreFromState(sortBy, getParleyCategory(match.params.category), feed);
+      loadMoreContent = () =>
+        this.props.getMoreFeedContent(sortBy, getParleyCategory(match.params.category));
     }
 
     const empty = _.isEmpty(content);
