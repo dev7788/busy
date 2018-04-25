@@ -19,6 +19,8 @@ const BodyShort = props => {
     return null;
   }
 
+  console.log('body', body);
+
   /* eslint-disable react/no-danger */
   return (
     <div

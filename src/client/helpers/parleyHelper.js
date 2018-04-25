@@ -1,4 +1,4 @@
-export function getParleyCategory(category) {
+export function addParleyToCategory(category) {
   if (category === '' || category === undefined) return 'parley';
 
   if (!category.includes('parley-')) return `parley-${category}`;
@@ -6,6 +6,6 @@ export function getParleyCategory(category) {
   return category;
 }
 
-export function removeParleyFromTag(tag) {
-  return tag.replace('parley-', '');
+export function removeParleyFromCategory(category) {
+  return category.replace('parley-', '');
 }

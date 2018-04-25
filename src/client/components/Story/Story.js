@@ -30,6 +30,8 @@ import DMCARemovedMessage from './DMCARemovedMessage';
 import PostedFrom from './PostedFrom';
 import './Story.less';
 
+import {removeParleyFromCategory} from "../../helpers/parleyHelper";
+
 @withRouter
 @injectIntl
 @withAuthActions
@@ -321,7 +323,7 @@ class Story extends React.Component {
                   </h4>
                 </Link>
                 <span className="Story__topics">
-                  <Topic name={post.category} />
+                  <Topic name={removeParleyFromCategory(post.category)} />
                 </span>
               </span>
               <span>

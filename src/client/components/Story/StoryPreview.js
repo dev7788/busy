@@ -92,7 +92,8 @@ const StoryPreview = ({ post }) => {
     bodyData.push(preview.text());
   }
 
-  return <div>{bodyData}</div>;
+  // return <div>{bodyData}</div>;
+  return <div/>;
 };
 
 StoryPreview.propTypes = {
