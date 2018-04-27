@@ -30,6 +30,7 @@ import PopoverMenu, { PopoverMenuItem } from '../PopoverMenu/PopoverMenu';
 import PostFeedEmbed from './PostFeedEmbed';
 import PostedFrom from './PostedFrom';
 import './StoryFull.less';
+import {removeParleyFromCategory, removeParleyFromTags} from "../../helpers/parleyHelper";
 
 @injectIntl
 @withAuthActions
@@ -214,7 +215,8 @@ class StoryFull extends React.Component {
 
     this.images = extractImageTags(parsedBody);
 
-    const tags = _.union(getFromMetadata(post.json_metadata, 'tags'), [post.category]);
+    let tags = _.union(getFromMetadata(post.json_metadata, 'tags'), [post.category]);
+    tags = removeParleyFromTags(tags);
 
     let followText = '';
 
@@ -341,7 +343,7 @@ class StoryFull extends React.Component {
             full
             rewriteLinks={rewriteLinks}
             body={signedBody}
-            json_metadata={post.json_metadata}
+            jsonMetadata={post.json_metadata}
           />
         </div>
       );

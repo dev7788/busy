@@ -6,12 +6,14 @@ import classNames from 'classnames';
 import sanitizeHtml from 'sanitize-html';
 import Remarkable from 'remarkable';
 import embedjs from 'embedjs';
+import Iframe from 'react-iframe'
 import { jsonParse } from '../../helpers/formatter';
 import sanitizeConfig from '../../vendor/SanitizeConfig';
 import { imageRegex, dtubeImageRegex } from '../../helpers/regexHelpers';
 import htmlReady from '../../vendor/steemitHtmlReady';
 import PostFeedEmbed from './PostFeedEmbed';
 import './Body.less';
+import {PARLEY, PARLEY_API} from "../../../common/constants/parley";
 
 export const remarkable = new Remarkable({
   html: true, // remarkable renders first then sanitize runs...
@@ -97,13 +99,84 @@ export function getHtml(body, jsonMetadata = {}, returnType = 'Object', options 
   return <div dangerouslySetInnerHTML={{ __html: sections.join('') }} />;
 }
 
-const Body = props => {
-  const options = {
-    rewriteLinks: props.rewriteLinks,
-  };
-  const htmlSections = getHtml(props.body, props.jsonMetadata, 'Object', options);
-  return <div className={classNames('Body', { 'Body--full': props.full })}>{htmlSections}</div>;
-};
+export function checkParley(metadata) {
+  return (metadata.app && metadata.app.name && metadata.app.name === PARLEY)
+}
+
+class Body extends React.PureComponent {
+
+  constructor(propos) {
+    super(propos);
+
+    this.state = {
+      embedable: false,
+      isParley: false,
+      videoUrl: false,
+      loading: true,
+    }
+  }
+
+  componentWillMount() {
+    const metaData = jsonParse(this.props.jsonMetadata);
+
+    const isParley = checkParley(metaData);
+    let videoUrl = false;
+
+    if (isParley) {
+      videoUrl = metaData.appdata.parley.url;
+
+      const url = `${PARLEY_API}?url=${metaData.appdata.parley.url}&format=json`;
+
+      fetch(url, {mode: 'cors'})
+        .then(response => response.json())
+        .then(data => {
+          const embedable = data.embedable;
+          this.setState({embedable, videoUrl, isParley, loading: false});
+        }).catch((e) => {
+          console.log("error", e);
+          this.setState({embedable: false, videoUrl, isParley, loading: false});
+        });
+    } else {
+      this.setState({isParley, loading: false});
+    }
+  }
+
+  render() {
+    const { jsonMetadata, rewriteLinks, body, full } = this.props;
+    const { isParley, embedable, videoUrl, loading } = this.state;
+
+    const metaData = jsonParse(jsonMetadata);
+
+    if (loading)
+      return <div/>;
+
+    const options = { rewriteLinks };
+    const htmlSections = getHtml(body, jsonMetadata, 'Object', options);
+
+    return <div>
+      { isParley && embedable &&
+      <Iframe url={`${PARLEY_API}?url=${metaData.appdata.parley.url}&format=html`}
+              width="100%"
+              height="450px"
+              id="myId"
+              className="myClassname"
+              display="initial"
+              position="relative"
+              allowFullScreen/>
+      }
+
+      { isParley && !embedable &&
+      <a href={videoUrl}>{videoUrl}</a>
+      }
+
+      { !isParley &&
+      <div className={classNames('Body', { 'Body--full': full })}>{htmlSections}</div>
+      }
+
+    </div>;
+  }
+
+}
 
 Body.propTypes = {
   body: PropTypes.string,
