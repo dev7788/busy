@@ -100,7 +100,9 @@ export function getHtml(body, jsonMetadata = {}, returnType = 'Object', options 
 }
 
 export function checkParley(metadata) {
-  return (metadata.app && metadata.app.name && metadata.app.name === PARLEY)
+  if (metadata && metadata.tags && metadata.tags.indexOf('parley') !== -1)
+    return true;
+  return false
 }
 
 class Body extends React.PureComponent {
@@ -116,17 +118,18 @@ class Body extends React.PureComponent {
     }
   }
 
-  componentWillMount() {
+  componentDidMount() {
     const metaData = jsonParse(this.props.jsonMetadata);
 
-    const isParley = checkParley(metaData);
-    let videoUrl = false;
+    let isParley = false;
+    isParley = checkParley(metaData);
 
-    if (isParley) {
+    let videoUrl = '';
+
+    if (isParley && metaData.appdata && metaData.appdata.parley && metaData.appdata.parley.url) {
       videoUrl = metaData.appdata.parley.url;
 
       const url = `${PARLEY_API}?url=${metaData.appdata.parley.url}&format=json`;
-
       fetch(url, {mode: 'cors'})
         .then(response => response.json())
         .then(data => {
@@ -135,9 +138,9 @@ class Body extends React.PureComponent {
         }).catch((e) => {
           console.log("error", e);
           this.setState({embedable: false, videoUrl, isParley, loading: false});
-        });
+      });
     } else {
-      this.setState({isParley, loading: false});
+      this.setState({isParley, videoUrl, loading: false});
     }
   }
 
@@ -148,7 +151,7 @@ class Body extends React.PureComponent {
     const metaData = jsonParse(jsonMetadata);
 
     if (loading)
-      return <div/>;
+      return <div style={{textAlign: 'center'}}>Loading...</div>;
 
     const options = { rewriteLinks };
     const htmlSections = getHtml(body, jsonMetadata, 'Object', options);
